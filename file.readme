@@ -33,6 +33,7 @@ SQL INJECTION -
 
 " or "1" = "1
 
+shepaird xss -- https://purpleskypeter.blogspot.com/2018/04/owasp-securityshepherd-xss6.html
 
 CSRF
 
